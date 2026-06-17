@@ -150,6 +150,13 @@ exports.handler = async (event, context) => {
         if (!currentUser) {
             return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ success: false, message: '请先登录' }) };
         }
+        // admin 硬编码用户
+        if (isAdminUser(currentUser.username)) {
+            return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ 
+                success: true, 
+                user: { id: 'ADMIN_PERM', username: 'admin', name: '管理员', role: 'admin' }
+            }) };
+        }
         const users = readJSON('users.json', []);
         const user = users.find(u => u.id === currentUser.userId);
         if (!user) {
@@ -309,8 +316,9 @@ exports.handler = async (event, context) => {
         let registrations = readJSON('registrations.json', []);
         const competitions = readJSON('competitions.json', []);
         
-        // 只能看自己的报名
-        registrations = registrations.filter(r => r.userId === currentUser.userId);
+        // 只能看自己的报名（admin 硬编码 userId 为 ADMIN_PERM）
+        const userIdFilter = isAdminUser(currentUser.username) ? 'ADMIN_PERM' : currentUser.userId;
+        registrations = registrations.filter(r => r.userId === userIdFilter);
         
         // 如果指定了比赛，筛选该比赛的报名
         if (competitionId) {
@@ -340,19 +348,21 @@ exports.handler = async (event, context) => {
             return { statusCode: 404, headers: corsHeaders, body: JSON.stringify({ success: false, message: '报名记录不存在' }) };
         }
 
-        // 检查是否是本人的报名
-        if (registrations[index].userId !== currentUser.userId) {
+        // 检查是否是本人的报名（管理员可修改任何报名）
+        if (!isAdminUser(currentUser.username) && registrations[index].userId !== currentUser.userId) {
             return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ success: false, message: '无权修改此报名' }) };
         }
 
-        // 检查报名时间
-        const competitions = readJSON('competitions.json', []);
-        const competition = competitions.find(c => c.id === registrations[index].competitionId);
-        if (competition) {
-            const now = new Date();
-            const end = new Date(competition.endTime);
-            if (now > end) {
-                return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ success: false, message: '报名已截止，无法修改' }) };
+        // 检查报名时间（管理员不受时间限制）
+        if (!isAdminUser(currentUser.username)) {
+            const competitions = readJSON('competitions.json', []);
+            const competition = competitions.find(c => c.id === registrations[index].competitionId);
+            if (competition) {
+                const now = new Date();
+                const end = new Date(competition.endTime);
+                if (now > end) {
+                    return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ success: false, message: '报名已截止，无法修改' }) };
+                }
             }
         }
 
@@ -391,19 +401,21 @@ exports.handler = async (event, context) => {
             return { statusCode: 404, headers: corsHeaders, body: JSON.stringify({ success: false, message: '报名记录不存在' }) };
         }
 
-        // 检查是否是本人的报名
-        if (registration.userId !== currentUser.userId) {
+        // 检查是否是本人的报名（管理员可删除任何报名）
+        if (!isAdminUser(currentUser.username) && registration.userId !== currentUser.userId) {
             return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ success: false, message: '无权删除此报名' }) };
         }
 
-        // 检查报名时间
-        const competitions = readJSON('competitions.json', []);
-        const competition = competitions.find(c => c.id === registration.competitionId);
-        if (competition) {
-            const now = new Date();
-            const end = new Date(competition.endTime);
-            if (now > end) {
-                return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ success: false, message: '报名已截止，无法删除' }) };
+        // 检查报名时间（管理员不受时间限制）
+        if (!isAdminUser(currentUser.username)) {
+            const competitions = readJSON('competitions.json', []);
+            const competition = competitions.find(c => c.id === registration.competitionId);
+            if (competition) {
+                const now = new Date();
+                const end = new Date(competition.endTime);
+                if (now > end) {
+                    return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ success: false, message: '报名已截止，无法删除' }) };
+                }
             }
         }
 
@@ -428,8 +440,12 @@ exports.handler = async (event, context) => {
         // 添加教练姓名和比赛名称
         const enriched = registrations.map(r => {
             const comp = competitions.find(c => c.id === r.competitionId);
-            const user = users.find(u => u.id === r.userId);
-            return { ...r, userName: user ? (user.name || user.username) : '', competitionName: comp ? comp.name : '' };
+            const regUser = users.find(u => u.id === r.userId);
+            // admin 硬编码用户的教练姓名
+            let userName = r.userName || '';
+            if (r.userId === 'ADMIN_PERM') userName = '管理员';
+            else if (regUser) userName = regUser.name || regUser.username;
+            return { ...r, userName, competitionName: comp ? comp.name : '' };
         });
         return { statusCode: 200, headers: corsHeaders, body: JSON.stringify(enriched) };
     }
