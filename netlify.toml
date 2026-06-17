@@ -3,26 +3,6 @@
   functions = "functions"
 
 [[redirects]]
-  from = "/api/register"
-  to = "/.netlify/functions/api"
-  status = 200
-
-[[redirects]]
-  from = "/api/registrations"
-  to = "/.netlify/functions/api"
-  status = 200
-
-[[redirects]]
-  from = "/api/registration/*"
-  to = "/.netlify/functions/api"
-  status = 200
-
-[[redirects]]
-  from = "/api/export"
-  to = "/.netlify/functions/api"
-  status = 200
-
-[[redirects]]
-  from = "/api/clear"
-  to = "/.netlify/functions/api"
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
   status = 200
