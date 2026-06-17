@@ -16,8 +16,8 @@ const verifyPassword = (pwd, hash) => {
 };
 
 // 生成 JWT token（简化版）
-const generateToken = (userId, username) => {
-    const payload = { userId, username, exp: Date.now() + 7 * 24 * 60 * 60 * 1000 };
+const generateToken = (userId, username, role) => {
+    const payload = { userId, username, role, exp: Date.now() + 7 * 24 * 60 * 60 * 1000 };
     return Buffer.from(JSON.stringify(payload)).toString('base64');
 };
 
@@ -30,6 +30,9 @@ const verifyToken = (token) => {
         return null;
     }
 };
+
+// admin 用户硬编码检查（不受冷启动影响）
+const isAdminUser = (username) => username && username.toLowerCase() === 'admin';
 
 // 读取数据
 const readJSON = (file, defaultVal = []) => {
@@ -84,13 +87,16 @@ exports.handler = async (event, context) => {
             return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ success: false, message: '用户名已存在' }) };
         }
 
+        // 用户名 admin 拥有管理员权限
+        const role = username.toLowerCase() === 'admin' ? 'admin' : 'coach';
+        
         const user = {
             id: 'USER' + Date.now(),
             username,
             password: hashPassword(password),
             name,
             phone: phone || '',
-            role: 'coach', // coach 或 admin
+            role,
             createdAt: new Date().toISOString()
         };
         users.push(user);
@@ -98,7 +104,7 @@ exports.handler = async (event, context) => {
 
         return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ 
             success: true, 
-            token: generateToken(user.id, user.username),
+            token: generateToken(user.id, user.username, user.role),
             user: { id: user.id, username: user.username, name: user.name, role: user.role }
         }) };
     }
@@ -113,10 +119,13 @@ exports.handler = async (event, context) => {
             return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ success: false, message: '用户名或密码错误' }) };
         }
 
+        // admin 用户始终拥有管理员权限
+        const role = username.toLowerCase() === 'admin' ? 'admin' : (user.role || 'coach');
+
         return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ 
             success: true, 
-            token: generateToken(user.id, user.username),
-            user: { id: user.id, username: user.username, name: user.name, role: user.role }
+            token: generateToken(user.id, user.username, role),
+            user: { id: user.id, username: user.username, name: user.name, role }
         }) };
     }
 
@@ -150,6 +159,9 @@ exports.handler = async (event, context) => {
         if (!currentUser) {
             return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ success: false, message: '请先登录' }) };
         }
+        if (!isAdminUser(currentUser.username)) {
+            return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ success: false, message: '需要管理员权限' }) };
+        }
         
         const { name, description, startTime, endTime } = body;
         if (!name || !startTime || !endTime) {
@@ -177,6 +189,9 @@ exports.handler = async (event, context) => {
     if (event.httpMethod === 'PUT' && path.startsWith('/competition/')) {
         if (!currentUser) {
             return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ success: false, message: '请先登录' }) };
+        }
+        if (!isAdminUser(currentUser.username)) {
+            return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ success: false, message: '需要管理员权限' }) };
         }
         
         const id = path.split('/').pop();
@@ -276,6 +291,7 @@ exports.handler = async (event, context) => {
 
         const competitionId = event.queryStringParameters?.competitionId;
         let registrations = readJSON('registrations.json', []);
+        const competitions = readJSON('competitions.json', []);
         
         // 只能看自己的报名
         registrations = registrations.filter(r => r.userId === currentUser.userId);
@@ -284,6 +300,12 @@ exports.handler = async (event, context) => {
         if (competitionId) {
             registrations = registrations.filter(r => r.competitionId === competitionId);
         }
+
+        // 添加比赛名称
+        registrations = registrations.map(r => {
+            const comp = competitions.find(c => c.id === r.competitionId);
+            return { ...r, competitionName: comp ? comp.name : '' };
+        });
 
         return { statusCode: 200, headers: corsHeaders, body: JSON.stringify(registrations) };
     }
@@ -380,8 +402,20 @@ exports.handler = async (event, context) => {
         if (!currentUser) {
             return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ success: false, message: '请先登录' }) };
         }
+        if (!isAdminUser(currentUser.username)) {
+            return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ success: false, message: '需要管理员权限' }) };
+        }
         const registrations = readJSON('registrations.json', []);
-        return { statusCode: 200, headers: corsHeaders, body: JSON.stringify(registrations) };
+        const competitions = readJSON('competitions.json', []);
+        const users = readJSON('users.json', []);
+        
+        // 添加教练姓名和比赛名称
+        const enriched = registrations.map(r => {
+            const comp = competitions.find(c => c.id === r.competitionId);
+            const user = users.find(u => u.id === r.userId);
+            return { ...r, userName: user ? (user.name || user.username) : '', competitionName: comp ? comp.name : '' };
+        });
+        return { statusCode: 200, headers: corsHeaders, body: JSON.stringify(enriched) };
     }
 
     return { statusCode: 404, headers: corsHeaders, body: JSON.stringify({ error: 'Not found' }) };
