@@ -294,7 +294,7 @@
             
             try {
                 // 发送到后端API
-                const response = await fetch('/api/register', {
+                const response = await fetch('/.netlify/functions/api/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

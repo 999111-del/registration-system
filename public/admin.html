@@ -301,7 +301,7 @@
         // 加载数据
         async function loadData() {
             try {
-                const response = await fetch('/api/registrations');
+                const response = await fetch('/.netlify/functions/api/registrations');
                 allData = await response.json();
                 filteredData = [...allData];
                 renderTable();
@@ -397,7 +397,7 @@
         // 导出Excel
         async function exportData() {
             try {
-                const response = await fetch('/api/export');
+                const response = await fetch('/.netlify/functions/api/export');
                 const blob = await response.blob();
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -415,7 +415,7 @@
             if (!confirm('确定要清空所有报名数据吗？此操作不可恢复！')) return;
             
             try {
-                const response = await fetch('/api/clear', { method: 'POST' });
+                const response = await fetch('/.netlify/functions/api/clear', { method: 'POST' });
                 const result = await response.json();
                 if (result.success) {
                     loadData();
@@ -431,7 +431,7 @@
             if (!confirm('确定删除此条报名信息？')) return;
             
             try {
-                const response = await fetch(`/api/registration/${id}`, { method: 'DELETE' });
+                const response = await fetch(`/.netlify/functions/api/registration/${id}`, { method: 'DELETE' });
                 const result = await response.json();
                 if (result.success) {
                     loadData();
