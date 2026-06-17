@@ -241,6 +241,7 @@
                         </div>
                         <div class="competition-actions">
                             <button class="btn btn-sm btn-edit" onclick="editCompetition('${comp.id}')">编辑</button>
+                            <button class="btn btn-sm btn-delete" onclick="deleteCompetition('${comp.id}', '${comp.name.replace(/'/g, "\\'")}')">删除</button>
                         </div>
                     </div>
                 `;
@@ -266,6 +267,33 @@
         function editCompetition(id) {
             const comp = competitions.find(c => c.id === id);
             if (comp) showCompetitionForm(comp);
+        }
+
+        async function deleteCompetition(id, name) {
+            // 统计该比赛下的报名人数
+            const regCount = allRegistrations.filter(r => r.competitionId === id).length;
+            const confirmMsg = regCount > 0
+                ? `确定要删除比赛「${name}」吗？\n\n该比赛下有 ${regCount} 条报名记录，删除后将一并清除，此操作不可恢复！`
+                : `确定要删除比赛「${name}」吗？\n\n此操作不可恢复！`;
+            if (!confirm(confirmMsg)) return;
+
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${API}/competition/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showMsg('删除成功', 'success');
+                    loadCompetitions();
+                    loadAllRegistrations();
+                } else {
+                    showMsg(data.message || '删除失败');
+                }
+            } catch (err) {
+                showMsg('删除失败，请重试');
+            }
         }
         
         async function saveCompetition() {

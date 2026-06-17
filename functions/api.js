@@ -223,6 +223,40 @@ exports.handler = async (event, context) => {
         return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ success: true, competition: competitions[index] }) };
     }
 
+    // 删除比赛（需要管理员权限）—— 同时删除该比赛下所有报名记录
+    if (event.httpMethod === 'DELETE' && urlPath.startsWith('/competition/')) {
+        if (!currentUser) {
+            return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ success: false, message: '请先登录' }) };
+        }
+        if (!isAdminUser(currentUser.username)) {
+            return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ success: false, message: '需要管理员权限' }) };
+        }
+
+        const id = urlPath.split('/').pop();
+        let competitions = await readJSON('competitions', []);
+        const compIndex = competitions.findIndex(c => c.id === id);
+
+        if (compIndex === -1) {
+            return { statusCode: 404, headers: corsHeaders, body: JSON.stringify({ success: false, message: '比赛不存在' }) };
+        }
+
+        // 删除比赛
+        const deletedComp = competitions.splice(compIndex, 1)[0];
+        await writeJSON('competitions', competitions);
+
+        // 删除该比赛下所有报名记录
+        let registrations = await readJSON('registrations', []);
+        const beforeCount = registrations.length;
+        registrations = registrations.filter(r => r.competitionId !== id);
+        await writeJSON('registrations', registrations);
+        const removedRegs = beforeCount - registrations.length;
+
+        return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({
+            success: true,
+            message: `已删除比赛「${deletedComp.name}」及 ${removedRegs} 条报名记录`
+        }) };
+    }
+
     // ========== 报名接口 ==========
 
     // 提交报名（需要登录）
