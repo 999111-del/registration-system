@@ -3,467 +3,396 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>后台管理 - 比赛报名系统</title>
+    <title>管理后台 - 比赛报名系统</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-        }
-        
-        .header-stats {
-            display: flex;
-            gap: 30px;
-        }
-        
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 28px;
-            font-weight: bold;
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .toolbar {
-            background: white;
-            border-radius: 8px;
-            padding: 16px 20px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            flex-wrap: wrap;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .search-box {
-            flex: 1;
-            min-width: 200px;
-            position: relative;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 10px 16px;
-            padding-left: 40px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        
-        .search-box::before {
-            content: "🔍";
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        
-        select, button {
-            padding: 10px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            background: white;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            border: none;
-        }
-        
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-        
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-            border: none;
-        }
-        
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-        
-        .table-container {
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        th, td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #333;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        
-        tr:hover {
-            background: #f8f9fa;
-        }
-        
-        .tag {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-right: 4px;
-        }
-        
-        .tag-mixed { background: #e3f2fd; color: #1976d2; }
-        .tag-team { background: #f3e5f5; color: #7b1fa2; }
-        .tag-mqs { background: #fff3e0; color: #f57c00; }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-        
-        .empty-state-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-        
-        .actions {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .action-btn {
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .action-edit {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-        
-        .action-delete {
-            background: #ffebee;
-            color: #c62828;
-        }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            padding: 20px;
-        }
-        
-        .page-btn {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .page-btn.active {
-            background: #1e3c72;
-            color: white;
-            border-color: #1e3c72;
-        }
-        
-        .page-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif; background: #f5f7fa; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 16px; }
+        .btn-logout { padding: 8px 16px; background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 6px; cursor: pointer; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .card-title { font-size: 18px; color: #333; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .tabs { display: flex; gap: 16px; border-bottom: 2px solid #eee; margin-bottom: 20px; }
+        .tab { padding: 12px 24px; cursor: pointer; color: #666; border-bottom: 2px solid transparent; }
+        .tab.active { color: #1e3c72; border-bottom-color: #1e3c72; font-weight: 600; }
+        .form-group { margin-bottom: 16px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        label { display: block; margin-bottom: 6px; color: #333; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #1e3c72; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: #1e3c72; color: white; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-edit { background: #e3f2fd; color: #1976d2; }
+        .btn-delete { background: #ffebee; color: #c62828; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; white-space: nowrap; }
+        th { background: #f8f9fa; font-weight: 600; color: #333; }
+        tr:hover { background: #f8f9fa; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-right: 4px; }
+        .badge-mixed { background: #e3f2fd; color: #1976d2; }
+        .badge-team { background: #f3e5f5; color: #7b1fa2; }
+        .badge-mqs { background: #fff3e0; color: #f57c00; }
+        .empty-state { text-align: center; padding: 60px; color: #999; }
+        .message { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; display: none; }
+        .message.error { background: #ffebee; color: #c62828; }
+        .message.success { background: #e8f5e9; color: #2e7d32; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .stat-card { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 32px; font-weight: bold; color: #1e3c72; }
+        .stat-label { color: #666; font-size: 14px; margin-top: 4px; }
+        .competition-card { border: 2px solid #eee; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+        .competition-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .competition-name { font-size: 16px; font-weight: 600; }
+        .competition-meta { font-size: 14px; color: #666; margin-bottom: 8px; }
+        .competition-actions { display: flex; gap: 8px; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .status-active { background: #e8f5e9; color: #2e7d32; }
+        .status-ended { background: #ffebee; color: #c62828; }
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .filter-bar select, .filter-bar input { width: auto; min-width: 150px; }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 20px; }
+        .page-btn { padding: 8px 12px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; }
+        .page-btn.active { background: #1e3c72; color: white; border-color: #1e3c72; }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🎯 比赛报名管理后台</h1>
-        <div class="header-stats">
-            <div class="stat-item">
-                <div class="stat-value" id="totalCount">0</div>
-                <div class="stat-label">总报名人数</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="todayCount">0</div>
-                <div class="stat-label">今日新增</div>
-            </div>
+        <h1>⚙️ 管理后台</h1>
+        <div class="user-info">
+            <span id="userName">加载中...</span>
+            <a href="dashboard.html" style="color:white;margin-right:16px;">返回报名</a>
+            <button class="btn-logout" onclick="logout()">退出</button>
         </div>
     </div>
     
     <div class="container">
-        <div class="toolbar">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="搜索姓名、代表队、联系电话...">
-            </div>
-            
-            <select id="filterProject">
-                <option value="">全部项目</option>
-            </select>
-            
-            <select id="filterGroup">
-                <option value="">全部组别</option>
-            </select>
-            
-            <button class="btn-primary" onclick="exportData()">📥 导出Excel</button>
-            <button class="btn-danger" onclick="clearAllData()">🗑️ 清空数据</button>
+        <div class="message" id="msgBox"></div>
+        
+        <!-- 统计 -->
+        <div class="stats" id="stats"></div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('competitions')">🏆 比赛管理</div>
+            <div class="tab" onclick="showTab('allRegistrations')">📋 全部报名</div>
         </div>
         
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>注册号</th>
-                        <th>姓名</th>
-                        <th>性别</th>
-                        <th>代表队</th>
-                        <th>参赛项目</th>
-                        <th>大组别</th>
-                        <th>小组别</th>
-                        <th>参赛类型</th>
-                        <th>联系电话</th>
-                        <th>报名时间</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="dataTable">
-                    <!-- 数据将通过JS动态加载 -->
-                </tbody>
-            </table>
+        <!-- 比赛管理 -->
+        <div id="competitionsTab" class="card">
+            <div class="card-title">
+                比赛列表
+                <button class="btn btn-primary btn-sm" onclick="showCompetitionForm()" style="margin-left:auto;">+ 新建比赛</button>
+            </div>
             
-            <div class="empty-state" id="emptyState">
-                <div class="empty-state-icon">📋</div>
+            <div id="competitionForm" style="display:none;margin-bottom:20px;padding:20px;background:#f8f9fa;border-radius:8px;">
+                <h3 style="margin-bottom:16px;" id="formTitle">新建比赛</h3>
+                <input type="hidden" id="editCompId">
+                <div class="form-group">
+                    <label>比赛名称 <span style="color:#e74c3c">*</span></label>
+                    <input type="text" id="compName" required placeholder="如：2024年春季赛">
+                </div>
+                <div class="form-group">
+                    <label>比赛说明</label>
+                    <textarea id="compDesc" rows="2" placeholder="选填"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>报名开始时间 <span style="color:#e74c3c">*</span></label>
+                        <input type="datetime-local" id="compStart" required>
+                    </div>
+                    <div class="form-group">
+                        <label>报名截止时间 <span style="color:#e74c3c">*</span></label>
+                        <input type="datetime-local" id="compEnd" required>
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;">
+                    <button class="btn btn-primary" onclick="saveCompetition()">保存</button>
+                    <button class="btn btn-secondary" onclick="hideCompetitionForm()">取消</button>
+                </div>
+            </div>
+            
+            <div id="competitionList"></div>
+        </div>
+        
+        <!-- 全部报名 -->
+        <div id="allRegistrationsTab" class="card" style="display:none;">
+            <div class="card-title">
+                全部报名数据
+                <button class="btn btn-primary btn-sm" onclick="exportAll()" style="margin-left:20px;">📥 导出CSV</button>
+            </div>
+            
+            <div class="filter-bar">
+                <select id="filterComp" onchange="loadAllRegistrations()">
+                    <option value="">全部比赛</option>
+                </select>
+                <select id="filterProject" onchange="loadAllRegistrations()">
+                    <option value="">全部项目</option>
+                </select>
+                <input type="text" id="searchText" placeholder="搜索姓名/代表队..." oninput="loadAllRegistrations()">
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>教练</th>
+                            <th>姓名</th>
+                            <th>代表队</th>
+                            <th>参赛项目</th>
+                            <th>组别</th>
+                            <th>类型</th>
+                            <th>比赛</th>
+                            <th>报名时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allRegList"></tbody>
+                </table>
+            </div>
+            <div class="empty-state" id="emptyAllReg" style="display:none;">
                 <div>暂无报名数据</div>
             </div>
-        </div>
-        
-        <div class="pagination" id="pagination" style="display:none;">
-            <button class="page-btn" onclick="prevPage()">上一页</button>
-            <span id="pageInfo">第 1 页</span>
-            <button class="page-btn" onclick="nextPage()">下一页</button>
+            
+            <div class="pagination" id="pagination"></div>
         </div>
     </div>
     
     <script>
-        let allData = [];
-        let filteredData = [];
+        const API = '/.netlify/functions/api';
+        let user = null;
+        let competitions = [];
+        let allRegistrations = [];
         let currentPage = 1;
         const pageSize = 20;
         
-        // 加载数据
-        async function loadData() {
-            try {
-                const response = await fetch('/.netlify/functions/api/registrations');
-                allData = await response.json();
-                filteredData = [...allData];
-                renderTable();
-                updateStats();
-            } catch (e) {
-                console.error('加载数据失败:', e);
-            }
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const userStr = localStorage.getItem('user');
+            if (!token || !userStr) { window.location.href = 'login.html'; return null; }
+            user = JSON.parse(userStr);
+            document.getElementById('userName').textContent = user.name || user.username;
+            return token;
         }
         
-        // 渲染表格
-        function renderTable() {
-            const tbody = document.getElementById('dataTable');
-            const emptyState = document.getElementById('emptyState');
-            const pagination = document.getElementById('pagination');
-            
-            if (filteredData.length === 0) {
-                tbody.innerHTML = '';
-                emptyState.style.display = 'block';
-                pagination.style.display = 'none';
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+        
+        function showMsg(msg, type = 'error') {
+            const el = document.getElementById('msgBox');
+            el.textContent = msg; el.className = `message ${type}`; el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+        
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('competitionsTab').style.display = tab === 'competitions' ? 'block' : 'none';
+            document.getElementById('allRegistrationsTab').style.display = tab === 'allRegistrations' ? 'block' : 'none';
+            event.target.classList.add('active');
+            if (tab === 'allRegistrations') loadAllRegistrations();
+        }
+        
+        // 加载比赛
+        async function loadCompetitions() {
+            const token = checkAuth();
+            if (!token) return;
+            try {
+                const res = await fetch(`${API}/competitions`);
+                competitions = await res.json();
+                renderCompetitions();
+                updateFilterOptions();
+            } catch (err) { showMsg('加载失败'); }
+        }
+        
+        function renderCompetitions() {
+            const container = document.getElementById('competitionList');
+            if (competitions.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">暂无比赛</div>';
                 return;
             }
             
-            emptyState.style.display = 'none';
-            pagination.style.display = 'flex';
+            const now = new Date();
+            container.innerHTML = competitions.map(comp => {
+                const end = new Date(comp.endTime);
+                const status = now > end ? 'ended' : 'active';
+                const statusText = now > end ? '已结束' : '进行中';
+                return `
+                    <div class="competition-card">
+                        <div class="competition-header">
+                            <span class="competition-name">${comp.name}</span>
+                            <span class="status-badge status-${status}">${statusText}</span>
+                        </div>
+                        <div class="competition-meta">
+                            📅 ${new Date(comp.startTime).toLocaleString('zh-CN')} 至 ${new Date(comp.endTime).toLocaleString('zh-CN')}
+                            ${comp.description ? `<br>📝 ${comp.description}` : ''}
+                        </div>
+                        <div class="competition-actions">
+                            <button class="btn btn-sm btn-edit" onclick="editCompetition('${comp.id}')">编辑</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function showCompetitionForm(comp = null) {
+            document.getElementById('competitionForm').style.display = 'block';
+            document.getElementById('formTitle').textContent = comp ? '编辑比赛' : '新建比赛';
+            document.getElementById('editCompId').value = comp?.id || '';
+            document.getElementById('compName').value = comp?.name || '';
+            document.getElementById('compDesc').value = comp?.description || '';
+            document.getElementById('compStart').value = comp ? comp.startTime.slice(0, 16) : '';
+            document.getElementById('compEnd').value = comp ? comp.endTime.slice(0, 16) : '';
+        }
+        
+        function hideCompetitionForm() {
+            document.getElementById('competitionForm').style.display = 'none';
+            document.getElementById('editCompId').value = '';
+        }
+        
+        function editCompetition(id) {
+            const comp = competitions.find(c => c.id === id);
+            if (comp) showCompetitionForm(comp);
+        }
+        
+        async function saveCompetition() {
+            const token = checkAuth();
+            const id = document.getElementById('editCompId').value;
+            const name = document.getElementById('compName').value.trim();
+            const startTime = document.getElementById('compStart').value;
+            const endTime = document.getElementById('compEnd').value;
             
+            if (!name || !startTime || !endTime) { showMsg('请填写完整信息'); return; }
+            
+            try {
+                const url = id ? `${API}/competition/${id}` : `${API}/competitions`;
+                const method = id ? 'PUT' : 'POST';
+                const res = await fetch(url, {
+                    method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ name, description: document.getElementById('compDesc').value, startTime, endTime })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showMsg(id ? '更新成功' : '创建成功', 'success');
+                    hideCompetitionForm();
+                    loadCompetitions();
+                } else { showMsg(data.message); }
+            } catch (err) { showMsg('保存失败'); }
+        }
+        
+        function updateFilterOptions() {
+            const filterComp = document.getElementById('filterComp');
+            filterComp.innerHTML = '<option value="">全部比赛</option>' + 
+                competitions.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+        
+        async function loadAllRegistrations() {
+            const token = checkAuth();
+            if (!token) return;
+            try {
+                const res = await fetch(`${API}/all-registrations`, { headers: { 'Authorization': `Bearer ${token}` } });
+                allRegistrations = await res.json();
+                renderAllRegistrations();
+                updateStats();
+            } catch (err) { showMsg('加载失败'); }
+        }
+        
+        function renderAllRegistrations() {
+            const filterComp = document.getElementById('filterComp').value;
+            const filterProject = document.getElementById('filterProject').value;
+            const search = document.getElementById('searchText').value.toLowerCase();
+            
+            let filtered = allRegistrations;
+            if (filterComp) filtered = filtered.filter(r => r.competitionId === filterComp);
+            if (filterProject) filtered = filtered.filter(r => r.project === filterProject);
+            if (search) filtered = filtered.filter(r => 
+                r.name?.toLowerCase().includes(search) || r.team?.toLowerCase().includes(search)
+            );
+            
+            const totalPages = Math.ceil(filtered.length / pageSize);
             const start = (currentPage - 1) * pageSize;
-            const end = start + pageSize;
-            const pageData = filteredData.slice(start, end);
+            const pageData = filtered.slice(start, start + pageSize);
             
-            tbody.innerHTML = pageData.map(item => `
+            const tbody = document.getElementById('allRegList');
+            if (pageData.length === 0) {
+                tbody.innerHTML = '';
+                document.getElementById('emptyAllReg').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('emptyAllReg').style.display = 'none';
+            tbody.innerHTML = pageData.map(reg => `
                 <tr>
-                    <td>${item.registrationId || '-'}</td>
-                    <td><strong>${item.name}</strong></td>
-                    <td>${item.gender || '-'}</td>
-                    <td>${item.team || '-'}</td>
-                    <td>${item.project || '-'}</td>
-                    <td>${item.bigGroup || '-'}</td>
-                    <td>${item.smallGroup || '-'}</td>
+                    <td>${reg.userName || '-'}</td>
+                    <td><strong>${reg.name}</strong></td>
+                    <td>${reg.team}</td>
+                    <td>${reg.project}</td>
+                    <td>${reg.bigGroup}${reg.smallGroup ? ' ' + reg.smallGroup : ''}</td>
                     <td>
-                        ${item.mixedTeam ? '<span class="tag tag-mixed">混团</span>' : ''}
-                        ${item.teamEvent ? '<span class="tag tag-team">团体</span>' : ''}
-                        ${item.mqs ? '<span class="tag tag-mqs">MQS</span>' : ''}
-                        ${!item.mixedTeam && !item.teamEvent && !item.mqs ? '-' : ''}
+                        ${reg.mixedTeam ? '<span class="badge badge-mixed">混团</span>' : ''}
+                        ${reg.teamEvent ? '<span class="badge badge-team">团体</span>' : ''}
+                        ${reg.mqs ? '<span class="badge badge-mqs">MQS</span>' : ''}
                     </td>
-                    <td>${item.phone || '-'}</td>
-                    <td>${item.submitTime || '-'}</td>
-                    <td class="actions">
-                        <button class="action-btn action-edit" onclick="editItem('${item.registrationId}')">编辑</button>
-                        <button class="action-btn action-delete" onclick="deleteItem('${item.registrationId}')">删除</button>
-                    </td>
+                    <td>${reg.competitionName || '-'}</td>
+                    <td>${reg.createdAt ? new Date(reg.createdAt).toLocaleString('zh-CN') : '-'}</td>
                 </tr>
             `).join('');
             
-            document.getElementById('pageInfo').textContent = 
-                `第 ${currentPage} 页 / 共 ${Math.ceil(filteredData.length / pageSize)} 页`;
+            renderPagination(totalPages);
         }
         
-        // 更新统计
+        function renderPagination(totalPages) {
+            const container = document.getElementById('pagination');
+            if (totalPages <= 1) { container.innerHTML = ''; return; }
+            
+            let html = `<button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>`;
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    html += '<span style="padding:8px">...</span>';
+                }
+            }
+            html += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>`;
+            container.innerHTML = html;
+        }
+        
+        function goPage(page) { currentPage = page; renderAllRegistrations(); }
+        
         function updateStats() {
-            document.getElementById('totalCount').textContent = allData.length;
-            
             const today = new Date().toLocaleDateString('zh-CN');
-            const todayCount = allData.filter(item => 
-                item.submitTime && item.submitTime.startsWith(today)
-            ).length;
-            document.getElementById('todayCount').textContent = todayCount;
-        }
-        
-        // 搜索过滤
-        document.getElementById('searchInput').addEventListener('input', filterData);
-        document.getElementById('filterProject').addEventListener('change', filterData);
-        document.getElementById('filterGroup').addEventListener('change', filterData);
-        
-        function filterData() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const project = document.getElementById('filterProject').value;
-            const group = document.getElementById('filterGroup').value;
+            const todayRegs = allRegistrations.filter(r => r.createdAt && new Date(r.createdAt).toLocaleDateString('zh-CN') === today);
             
-            filteredData = allData.filter(item => {
-                const matchSearch = !search || 
-                    (item.name && item.name.toLowerCase().includes(search)) ||
-                    (item.team && item.team.toLowerCase().includes(search)) ||
-                    (item.phone && item.phone.includes(search));
-                const matchProject = !project || item.project === project;
-                const matchGroup = !group || item.bigGroup === group;
-                return matchSearch && matchProject && matchGroup;
-            });
-            
-            currentPage = 1;
-            renderTable();
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-card"><div class="stat-value">${allRegistrations.length}</div><div class="stat-label">总报名人数</div></div>
+                <div class="stat-card"><div class="stat-value">${todayRegs.length}</div><div class="stat-label">今日新增</div></div>
+                <div class="stat-card"><div class="stat-value">${competitions.length}</div><div class="stat-label">比赛数量</div></div>
+                <div class="stat-card"><div class="stat-value">${allRegistrations.filter(r => r.mixedTeam).length}</div><div class="stat-label">混团人数</div></div>
+            `;
         }
         
-        // 导出Excel
-        async function exportData() {
-            try {
-                const response = await fetch('/.netlify/functions/api/export');
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `报名数据_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.xlsx`;
-                a.click();
-                URL.revokeObjectURL(url);
-            } catch (e) {
-                alert('导出失败: ' + e.message);
-            }
+        function exportAll() {
+            const headers = ['教练', '姓名', '性别', '代表队', '参赛项目', '大组别', '小组别', '混团', '团体', 'MQS', '联系电话', '备注', '比赛', '报名时间'];
+            const rows = allRegistrations.map(r => [
+                r.userName, r.name, r.gender, r.team, r.project, r.bigGroup, r.smallGroup,
+                r.mixedTeam ? '是' : '否', r.teamEvent ? '是' : '否', r.mqs ? '是' : '否',
+                r.phone, r.remarks, r.competitionName, r.createdAt ? new Date(r.createdAt).toLocaleString('zh-CN') : ''
+            ]);
+            const csv = '\uFEFF' + [headers, ...rows].map(row => row.map(c => `"${String(c || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `全部报名_${new Date().toLocaleDateString('zh-CN')}.csv`; a.click();
         }
         
-        // 清空数据
-        async function clearAllData() {
-            if (!confirm('确定要清空所有报名数据吗？此操作不可恢复！')) return;
-            
-            try {
-                const response = await fetch('/.netlify/functions/api/clear', { method: 'POST' });
-                const result = await response.json();
-                if (result.success) {
-                    loadData();
-                    alert('数据已清空');
-                }
-            } catch (e) {
-                alert('清空失败: ' + e.message);
-            }
-        }
-        
-        // 删除单条
-        async function deleteItem(id) {
-            if (!confirm('确定删除此条报名信息？')) return;
-            
-            try {
-                const response = await fetch(`/.netlify/functions/api/registration/${id}`, { method: 'DELETE' });
-                const result = await response.json();
-                if (result.success) {
-                    loadData();
-                }
-            } catch (e) {
-                alert('删除失败: ' + e.message);
-            }
-        }
-        
-        // 编辑
-        function editItem(id) {
-            alert('编辑功能开发中...');
-        }
-        
-        // 分页
-        function prevPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                renderTable();
-            }
-        }
-        
-        function nextPage() {
-            const maxPage = Math.ceil(filteredData.length / pageSize);
-            if (currentPage < maxPage) {
-                currentPage++;
-                renderTable();
-            }
-        }
-        
-        // 初始化
-        loadData();
+        const token = checkAuth();
+        if (token) { loadCompetitions(); loadAllRegistrations(); }
     </script>
 </body>
 </html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教练后台 - 比赛报名系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 16px; }
+        .user-name { font-size: 16px; }
+        .btn-logout { padding: 8px 16px; background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 6px; cursor: pointer; }
+        .btn-logout:hover { background: rgba(255,255,255,0.3); }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .card-title { font-size: 18px; color: #333; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        
+        .competition-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+        .competition-item {
+            border: 2px solid #eee;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .competition-item:hover { border-color: #1e3c72; }
+        .competition-item.disabled { opacity: 0.6; cursor: not-allowed; }
+        .competition-name { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
+        .competition-time { font-size: 14px; color: #666; margin-bottom: 4px; }
+        .competition-status { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-top: 8px; }
+        .status-active { background: #e8f5e9; color: #2e7d32; }
+        .status-ended { background: #ffebee; color: #c62828; }
+        .status-not-start { background: #fff3e0; color: #e65100; }
+        
+        .tabs { display: flex; gap: 16px; border-bottom: 2px solid #eee; margin-bottom: 20px; }
+        .tab { padding: 12px 24px; cursor: pointer; color: #666; border-bottom: 2px solid transparent; }
+        .tab.active { color: #1e3c72; border-bottom-color: #1e3c72; font-weight: 600; }
+        
+        .form-group { margin-bottom: 16px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        label { display: block; margin-bottom: 6px; color: #333; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #1e3c72; }
+        .checkbox-group { display: flex; gap: 16px; flex-wrap: wrap; }
+        .checkbox-item { display: flex; align-items: center; gap: 6px; }
+        .checkbox-item input { width: 18px; height: 18px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: #1e3c72; color: white; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; color: #333; }
+        tr:hover { background: #f8f9fa; }
+        .action-btn { padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; margin-right: 4px; font-size: 12px; }
+        .btn-edit { background: #e3f2fd; color: #1976d2; }
+        .btn-delete { background: #ffebee; color: #c62828; }
+        
+        .empty-state { text-align: center; padding: 60px; color: #999; }
+        .empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+        
+        .message { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; display: none; }
+        .message.error { background: #ffebee; color: #c62828; }
+        .message.success { background: #e8f5e9; color: #2e7d32; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-title { font-size: 18px; font-weight: 600; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
+        .modal-footer { margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏆 比赛报名系统</h1>
+        <div class="user-info">
+            <span class="user-name" id="userName">加载中...</span>
+            <button class="btn-logout" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="message" id="msgBox"></div>
+        
+        <!-- 比赛列表 -->
+        <div class="card">
+            <div class="card-title">📋 选择比赛</div>
+            <div class="competition-list" id="competitionList">
+                <div class="empty-state-icon">加载中...</div>
+            </div>
+        </div>
+        
+        <!-- Tab切换 -->
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('myRegistrations')">我的报名</div>
+            <div class="tab" onclick="showTab('addRegistration')">新增报名</div>
+        </div>
+        
+        <!-- 我的报名 -->
+        <div id="myRegistrations" class="card">
+            <div class="card-title">📝 我的报名人员</div>
+            <div class="table-container">
+                <table id="registrationTable">
+                    <thead>
+                        <tr>
+                            <th>姓名</th>
+                            <th>代表队</th>
+                            <th>参赛项目</th>
+                            <th>组别</th>
+                            <th>参赛类型</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registrationList"></tbody>
+                </table>
+            </div>
+            <div class="empty-state" id="emptyRegistrations" style="display:none;">
+                <div class="empty-state-icon">📋</div>
+                <div>暂无报名数据</div>
+            </div>
+        </div>
+        
+        <!-- 新增报名 -->
+        <div id="addRegistration" class="card" style="display:none;">
+            <div class="card-title">➕ 新增报名</div>
+            <form id="registrationForm" onsubmit="handleSubmitRegistration(event)">
+                <input type="hidden" id="editId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>姓名 <span style="color:#e74c3c">*</span></label>
+                        <input type="text" id="regName" required placeholder="请输入选手姓名">
+                    </div>
+                    <div class="form-group">
+                        <label>性别</label>
+                        <select id="regGender">
+                            <option value="">请选择</option>
+                            <option value="男">男</option>
+                            <option value="女">女</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>代表队 <span style="color:#e74c3c">*</span></label>
+                        <input type="text" id="regTeam" required placeholder="请输入代表队名称">
+                    </div>
+                    <div class="form-group">
+                        <label>参赛项目 <span style="color:#e74c3c">*</span></label>
+                        <input type="text" id="regProject" required placeholder="请输入参赛项目">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>大组别 <span style="color:#e74c3c">*</span></label>
+                        <select id="regBigGroup" required>
+                            <option value="">请选择</option>
+                            <option value="甲组">甲组</option>
+                            <option value="乙组">乙组</option>
+                            <option value="丙组">丙组</option>
+                            <option value="公开组">公开组</option>
+                            <option value="老年组">老年组</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>小组别</label>
+                        <input type="text" id="regSmallGroup" placeholder="如：1组、2组">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>参赛类型</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item"><input type="checkbox" id="regMixedTeam"> 混团</label>
+                        <label class="checkbox-item"><input type="checkbox" id="regTeamEvent"> 团体</label>
+                        <label class="checkbox-item"><input type="checkbox" id="regMqs"> MQS</label>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>联系电话</label>
+                        <input type="tel" id="regPhone" placeholder="选填">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea id="regRemarks" rows="2" placeholder="选填"></textarea>
+                </div>
+                <div style="display:flex;gap:12px;">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">提交报名</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">取消编辑</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const API = '/.netlify/functions/api';
+        let user = null;
+        let competitions = [];
+        let currentCompetitionId = null;
+        
+        // 检查登录
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const userStr = localStorage.getItem('user');
+            if (!token || !userStr) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            user = JSON.parse(userStr);
+            document.getElementById('userName').textContent = user.name || user.username;
+            return token;
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+        
+        function showMsg(msg, type = 'error') {
+            const el = document.getElementById('msgBox');
+            el.textContent = msg;
+            el.className = `message ${type}`;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+        
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('myRegistrations').style.display = tab === 'myRegistrations' ? 'block' : 'none';
+            document.getElementById('addRegistration').style.display = tab === 'addRegistration' ? 'block' : 'none';
+            event.target.classList.add('active');
+        }
+        
+        // 加载比赛列表
+        async function loadCompetitions() {
+            try {
+                const res = await fetch(`${API}/competitions`);
+                competitions = await res.json();
+                renderCompetitions();
+            } catch (err) {
+                showMsg('加载比赛列表失败');
+            }
+        }
+        
+        function renderCompetitions() {
+            const container = document.getElementById('competitionList');
+            if (competitions.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding:20px;color:#999;">暂无比赛，请联系管理员创建</div>';
+                return;
+            }
+            
+            const now = new Date();
+            container.innerHTML = competitions.map(comp => {
+                const start = new Date(comp.startTime);
+                const end = new Date(comp.endTime);
+                let status = 'active', statusText = '报名中';
+                if (now > end) { status = 'ended'; statusText = '已结束'; }
+                else if (now < start) { status = 'not-start'; statusText = '未开始'; }
+                
+                const canSelect = status === 'active' ? '' : 'disabled';
+                
+                return `
+                    <div class="competition-item ${canSelect}" onclick="selectCompetition('${comp.id}')">
+                        <div class="competition-name">${comp.name}</div>
+                        <div class="competition-time">📅 ${new Date(comp.startTime).toLocaleDateString('zh-CN')} - ${new Date(comp.endTime).toLocaleDateString('zh-CN')}</div>
+                        ${comp.description ? `<div class="competition-time">${comp.description}</div>` : ''}
+                        <span class="competition-status status-${status}">${statusText}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function selectCompetition(id) {
+            const comp = competitions.find(c => c.id === id);
+            const now = new Date();
+            const end = new Date(comp.endTime);
+            
+            if (now > end) {
+                showMsg('该比赛报名已截止');
+                return;
+            }
+            
+            currentCompetitionId = id;
+            loadMyRegistrations();
+            showTab('addRegistration');
+            document.querySelectorAll('.tab')[1].click();
+            
+            // 滚动到表单
+            document.getElementById('addRegistration').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 加载我的报名
+        async function loadMyRegistrations() {
+            const token = checkAuth();
+            if (!token) return;
+            
+            try {
+                const url = currentCompetitionId 
+                    ? `${API}/my-registrations?competitionId=${currentCompetitionId}`
+                    : `${API}/my-registrations`;
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (Array.isArray(data)) {
+                    renderRegistrations(data);
+                }
+            } catch (err) {
+                showMsg('加载报名数据失败');
+            }
+        }
+        
+        function renderRegistrations(registrations) {
+            const tbody = document.getElementById('registrationList');
+            const empty = document.getElementById('emptyRegistrations');
+            
+            if (registrations.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            
+            empty.style.display = 'none';
+            tbody.innerHTML = registrations.map(reg => `
+                <tr>
+                    <td><strong>${reg.name}</strong></td>
+                    <td>${reg.team}</td>
+                    <td>${reg.project}</td>
+                    <td>${reg.bigGroup}${reg.smallGroup ? ' ' + reg.smallGroup : ''}</td>
+                    <td>
+                        ${reg.mixedTeam ? '<span style="color:#1976d2">混团</span> ' : ''}
+                        ${reg.teamEvent ? '<span style="color:#7b1fa2">团体</span> ' : ''}
+                        ${reg.mqs ? '<span style="color:#f57c00">MQS</span>' : ''}
+                    </td>
+                    <td>
+                        <button class="action-btn btn-edit" onclick="editRegistration('${reg.id}')">编辑</button>
+                        <button class="action-btn btn-delete" onclick="deleteRegistration('${reg.id}')">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function resetForm() {
+            document.getElementById('registrationForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('submitBtn').textContent = '提交报名';
+        }
+        
+        // 编辑报名
+        let allRegistrations = [];
+        
+        async function editRegistration(id) {
+            const token = checkAuth();
+            try {
+                // 获取所有报名找到要编辑的
+                const res = await fetch(`${API}/my-registrations`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                allRegistrations = await res.json();
+                
+                const reg = allRegistrations.find(r => r.id === id);
+                if (!reg) {
+                    showMsg('找不到该报名记录');
+                    return;
+                }
+                
+                document.getElementById('editId').value = id;
+                document.getElementById('regName').value = reg.name;
+                document.getElementById('regGender').value = reg.gender || '';
+                document.getElementById('regTeam').value = reg.team;
+                document.getElementById('regProject').value = reg.project;
+                document.getElementById('regBigGroup').value = reg.bigGroup;
+                document.getElementById('regSmallGroup').value = reg.smallGroup || '';
+                document.getElementById('regMixedTeam').checked = reg.mixedTeam;
+                document.getElementById('regTeamEvent').checked = reg.teamEvent;
+                document.getElementById('regMqs').checked = reg.mqs;
+                document.getElementById('regPhone').value = reg.phone || '';
+                document.getElementById('regRemarks').value = reg.remarks || '';
+                
+                document.getElementById('submitBtn').textContent = '更新报名';
+                showTab('addRegistration');
+                document.querySelectorAll('.tab')[1].click();
+            } catch (err) {
+                showMsg('加载数据失败');
+            }
+        }
+        
+        async function deleteRegistration(id) {
+            if (!confirm('确定要删除此报名记录吗？')) return;
+            
+            const token = checkAuth();
+            try {
+                const res = await fetch(`${API}/registration/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showMsg('删除成功', 'success');
+                    loadMyRegistrations();
+                } else {
+                    showMsg(data.message || '删除失败');
+                }
+            } catch (err) {
+                showMsg('网络错误');
+            }
+        }
+        
+        // 提交报名
+        async function handleSubmitRegistration(e) {
+            e.preventDefault();
+            
+            const token = checkAuth();
+            if (!token) return;
+            
+            if (!currentCompetitionId) {
+                showMsg('请先选择一个比赛');
+                return;
+            }
+            
+            const editId = document.getElementById('editId').value;
+            const isEdit = !!editId;
+            
+            const formData = {
+                competitionId: currentCompetitionId,
+                name: document.getElementById('regName').value.trim(),
+                gender: document.getElementById('regGender').value,
+                team: document.getElementById('regTeam').value.trim(),
+                project: document.getElementById('regProject').value.trim(),
+                bigGroup: document.getElementById('regBigGroup').value,
+                smallGroup: document.getElementById('regSmallGroup').value.trim(),
+                mixedTeam: document.getElementById('regMixedTeam').checked,
+                teamEvent: document.getElementById('regTeamEvent').checked,
+                mqs: document.getElementById('regMqs').checked,
+                phone: document.getElementById('regPhone').value.trim(),
+                remarks: document.getElementById('regRemarks').value.trim()
+            };
+            
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = isEdit ? '更新中...' : '提交中...';
+            
+            try {
+                const url = isEdit ? `${API}/registration/${editId}` : `${API}/register`;
+                const method = isEdit ? 'PUT' : 'POST';
+                
+                const res = await fetch(url, {
+                    method,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showMsg(isEdit ? '更新成功！' : '报名成功！', 'success');
+                    resetForm();
+                    loadMyRegistrations();
+                } else {
+                    showMsg(data.message || (isEdit ? '更新失败' : '报名失败'));
+                }
+            } catch (err) {
+                showMsg('网络错误，请稍后重试');
+            }
+            
+            btn.disabled = false;
+            btn.textContent = isEdit ? '更新报名' : '提交报名';
+        }
+        
+        // 初始化
+        const token = checkAuth();
+        if (token) {
+            loadCompetitions();
+            loadMyRegistrations();
+        }
+    </script>
+</body>
+</html>
