@@ -253,8 +253,9 @@
             document.getElementById('editCompId').value = comp?.id || '';
             document.getElementById('compName').value = comp?.name || '';
             document.getElementById('compDesc').value = comp?.description || '';
-            document.getElementById('compStart').value = comp ? comp.startTime.slice(0, 16) : '';
-            document.getElementById('compEnd').value = comp ? comp.endTime.slice(0, 16) : '';
+            // ISO 转 datetime-local 格式
+            document.getElementById('compStart').value = comp ? new Date(comp.startTime).toISOString().slice(0, 16) : '';
+            document.getElementById('compEnd').value = comp ? new Date(comp.endTime).toISOString().slice(0, 16) : '';
         }
         
         function hideCompetitionForm() {
@@ -271,10 +272,14 @@
             const token = await checkAuth();
             const id = document.getElementById('editCompId').value;
             const name = document.getElementById('compName').value.trim();
-            const startTime = document.getElementById('compStart').value;
-            const endTime = document.getElementById('compEnd').value;
+            const startTimeLocal = document.getElementById('compStart').value;
+            const endTimeLocal = document.getElementById('compEnd').value;
             
-            if (!name || !startTime || !endTime) { showMsg('请填写完整信息'); return; }
+            if (!name || !startTimeLocal || !endTimeLocal) { showMsg('请填写完整信息'); return; }
+            
+            // 将本地时间转为 ISO 格式存储，避免时区解析问题
+            const startTime = new Date(startTimeLocal).toISOString();
+            const endTime = new Date(endTimeLocal).toISOString();
             
             try {
                 const url = id ? `${API}/competition/${id}` : `${API}/competitions`;

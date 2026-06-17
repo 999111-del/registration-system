@@ -1,5 +1,7 @@
 {
   "name": "registration-api",
   "version": "1.0.0",
-  "dependencies": {}
+  "dependencies": {
+    "@netlify/blobs": "^8.0.0"
+  }
 }

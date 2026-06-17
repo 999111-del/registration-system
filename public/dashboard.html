@@ -298,10 +298,16 @@
         function selectCompetition(id) {
             const comp = competitions.find(c => c.id === id);
             const now = new Date();
+            const start = new Date(comp.startTime);
             const end = new Date(comp.endTime);
             
             if (now > end) {
                 showMsg('该比赛报名已截止');
+                return;
+            }
+            
+            if (now < start) {
+                showMsg('报名尚未开始，开始时间：' + start.toLocaleString('zh-CN'));
                 return;
             }
             
