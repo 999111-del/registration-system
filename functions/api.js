@@ -81,6 +81,10 @@ exports.handler = async (event, context) => {
         if (username.length < 3 || password.length < 6) {
             return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ success: false, message: '用户名至少3位，密码至少6位' }) };
         }
+        // 禁止注册 admin 用户名
+        if (username.toLowerCase() === 'admin') {
+            return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ success: false, message: '该用户名不可注册' }) };
+        }
 
         const users = readJSON('users.json', []);
         if (users.find(u => u.username === username)) {
@@ -112,6 +116,19 @@ exports.handler = async (event, context) => {
     // 教练登录
     if (event.httpMethod === 'POST' && path === '/auth/login') {
         const { username, password } = body;
+        
+        // 硬编码 admin 账号（不受冷启动数据丢失影响）
+        if (username.toLowerCase() === 'admin') {
+            if (password !== 'admin123') {
+                return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ success: false, message: '用户名或密码错误' }) };
+            }
+            return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ 
+                success: true, 
+                token: generateToken('ADMIN_PERM', 'admin', 'admin'),
+                user: { id: 'ADMIN_PERM', username: 'admin', name: '管理员', role: 'admin' }
+            }) };
+        }
+        
         const users = readJSON('users.json', []);
         const user = users.find(u => u.username === username);
         
@@ -119,8 +136,7 @@ exports.handler = async (event, context) => {
             return { statusCode: 401, headers: corsHeaders, body: JSON.stringify({ success: false, message: '用户名或密码错误' }) };
         }
 
-        // admin 用户始终拥有管理员权限
-        const role = username.toLowerCase() === 'admin' ? 'admin' : (user.role || 'coach');
+        const role = user.role || 'coach';
 
         return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ 
             success: true, 
