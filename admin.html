@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理 - 比赛报名系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .toolbar {
+            background: white;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px;
+            padding-left: 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        select, button {
+            padding: 10px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+            border: none;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 4px;
+        }
+        
+        .tag-mixed { background: #e3f2fd; color: #1976d2; }
+        .tag-team { background: #f3e5f5; color: #7b1fa2; }
+        .tag-mqs { background: #fff3e0; color: #f57c00; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .action-edit {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .action-delete {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 20px;
+        }
+        
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .page-btn.active {
+            background: #1e3c72;
+            color: white;
+            border-color: #1e3c72;
+        }
+        
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 比赛报名管理后台</h1>
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">总报名人数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="todayCount">0</div>
+                <div class="stat-label">今日新增</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="toolbar">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索姓名、代表队、联系电话...">
+            </div>
+            
+            <select id="filterProject">
+                <option value="">全部项目</option>
+            </select>
+            
+            <select id="filterGroup">
+                <option value="">全部组别</option>
+            </select>
+            
+            <button class="btn-primary" onclick="exportData()">📥 导出Excel</button>
+            <button class="btn-danger" onclick="clearAllData()">🗑️ 清空数据</button>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>注册号</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>代表队</th>
+                        <th>参赛项目</th>
+                        <th>大组别</th>
+                        <th>小组别</th>
+                        <th>参赛类型</th>
+                        <th>联系电话</th>
+                        <th>报名时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTable">
+                    <!-- 数据将通过JS动态加载 -->
+                </tbody>
+            </table>
+            
+            <div class="empty-state" id="emptyState">
+                <div class="empty-state-icon">📋</div>
+                <div>暂无报名数据</div>
+            </div>
+        </div>
+        
+        <div class="pagination" id="pagination" style="display:none;">
+            <button class="page-btn" onclick="prevPage()">上一页</button>
+            <span id="pageInfo">第 1 页</span>
+            <button class="page-btn" onclick="nextPage()">下一页</button>
+        </div>
+    </div>
+    
+    <script>
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const pageSize = 20;
+        
+        // 加载数据
+        async function loadData() {
+            try {
+                const response = await fetch('/api/registrations');
+                allData = await response.json();
+                filteredData = [...allData];
+                renderTable();
+                updateStats();
+            } catch (e) {
+                console.error('加载数据失败:', e);
+            }
+        }
+        
+        // 渲染表格
+        function renderTable() {
+            const tbody = document.getElementById('dataTable');
+            const emptyState = document.getElementById('emptyState');
+            const pagination = document.getElementById('pagination');
+            
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                pagination.style.display = 'none';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            pagination.style.display = 'flex';
+            
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = filteredData.slice(start, end);
+            
+            tbody.innerHTML = pageData.map(item => `
+                <tr>
+                    <td>${item.registrationId || '-'}</td>
+                    <td><strong>${item.name}</strong></td>
+                    <td>${item.gender || '-'}</td>
+                    <td>${item.team || '-'}</td>
+                    <td>${item.project || '-'}</td>
+                    <td>${item.bigGroup || '-'}</td>
+                    <td>${item.smallGroup || '-'}</td>
+                    <td>
+                        ${item.mixedTeam ? '<span class="tag tag-mixed">混团</span>' : ''}
+                        ${item.teamEvent ? '<span class="tag tag-team">团体</span>' : ''}
+                        ${item.mqs ? '<span class="tag tag-mqs">MQS</span>' : ''}
+                        ${!item.mixedTeam && !item.teamEvent && !item.mqs ? '-' : ''}
+                    </td>
+                    <td>${item.phone || '-'}</td>
+                    <td>${item.submitTime || '-'}</td>
+                    <td class="actions">
+                        <button class="action-btn action-edit" onclick="editItem('${item.registrationId}')">编辑</button>
+                        <button class="action-btn action-delete" onclick="deleteItem('${item.registrationId}')">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            document.getElementById('pageInfo').textContent = 
+                `第 ${currentPage} 页 / 共 ${Math.ceil(filteredData.length / pageSize)} 页`;
+        }
+        
+        // 更新统计
+        function updateStats() {
+            document.getElementById('totalCount').textContent = allData.length;
+            
+            const today = new Date().toLocaleDateString('zh-CN');
+            const todayCount = allData.filter(item => 
+                item.submitTime && item.submitTime.startsWith(today)
+            ).length;
+            document.getElementById('todayCount').textContent = todayCount;
+        }
+        
+        // 搜索过滤
+        document.getElementById('searchInput').addEventListener('input', filterData);
+        document.getElementById('filterProject').addEventListener('change', filterData);
+        document.getElementById('filterGroup').addEventListener('change', filterData);
+        
+        function filterData() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const project = document.getElementById('filterProject').value;
+            const group = document.getElementById('filterGroup').value;
+            
+            filteredData = allData.filter(item => {
+                const matchSearch = !search || 
+                    (item.name && item.name.toLowerCase().includes(search)) ||
+                    (item.team && item.team.toLowerCase().includes(search)) ||
+                    (item.phone && item.phone.includes(search));
+                const matchProject = !project || item.project === project;
+                const matchGroup = !group || item.bigGroup === group;
+                return matchSearch && matchProject && matchGroup;
+            });
+            
+            currentPage = 1;
+            renderTable();
+        }
+        
+        // 导出Excel
+        async function exportData() {
+            try {
+                const response = await fetch('/api/export');
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `报名数据_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.xlsx`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                alert('导出失败: ' + e.message);
+            }
+        }
+        
+        // 清空数据
+        async function clearAllData() {
+            if (!confirm('确定要清空所有报名数据吗？此操作不可恢复！')) return;
+            
+            try {
+                const response = await fetch('/api/clear', { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    loadData();
+                    alert('数据已清空');
+                }
+            } catch (e) {
+                alert('清空失败: ' + e.message);
+            }
+        }
+        
+        // 删除单条
+        async function deleteItem(id) {
+            if (!confirm('确定删除此条报名信息？')) return;
+            
+            try {
+                const response = await fetch(`/api/registration/${id}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (result.success) {
+                    loadData();
+                }
+            } catch (e) {
+                alert('删除失败: ' + e.message);
+            }
+        }
+        
+        // 编辑
+        function editItem(id) {
+            alert('编辑功能开发中...');
+        }
+        
+        // 分页
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+        
+        function nextPage() {
+            const maxPage = Math.ceil(filteredData.length / pageSize);
+            if (currentPage < maxPage) {
+                currentPage++;
+                renderTable();
+            }
+        }
+        
+        // 初始化
+        loadData();
+    </script>
+</body>
+</html>
