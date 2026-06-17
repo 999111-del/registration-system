@@ -93,6 +93,7 @@
     <div class="header">
         <h1>🏆 比赛报名系统</h1>
         <div class="user-info">
+            <a id="adminLink" href="admin.html" style="display:none;color:white;margin-right:16px;background:rgba(255,255,255,0.2);padding:8px 16px;border-radius:6px;text-decoration:none;">⚙️ 管理后台</a>
             <span class="user-name" id="userName">加载中...</span>
             <button class="btn-logout" onclick="logout()">退出登录</button>
         </div>
@@ -227,6 +228,10 @@
             }
             user = JSON.parse(userStr);
             document.getElementById('userName').textContent = user.name || user.username;
+            // 管理员显示管理后台链接
+            if (user.role === 'admin') {
+                document.getElementById('adminLink').style.display = 'inline-block';
+            }
             return token;
         }
         
