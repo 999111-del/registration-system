@@ -170,11 +170,17 @@
         let currentPage = 1;
         const pageSize = 20;
         
-        function checkAuth() {
+        async function checkAuth() {
             const token = localStorage.getItem('token');
             const userStr = localStorage.getItem('user');
             if (!token || !userStr) { window.location.href = 'login.html'; return null; }
             user = JSON.parse(userStr);
+            // 验证是否为管理员
+            if (user.role !== 'admin') {
+                alert('需要管理员权限');
+                window.location.href = 'dashboard.html';
+                return null;
+            }
             document.getElementById('userName').textContent = user.name || user.username;
             return token;
         }
@@ -201,7 +207,7 @@
         
         // 加载比赛
         async function loadCompetitions() {
-            const token = checkAuth();
+            const token = await checkAuth();
             if (!token) return;
             try {
                 const res = await fetch(`${API}/competitions`);
@@ -262,7 +268,7 @@
         }
         
         async function saveCompetition() {
-            const token = checkAuth();
+            const token = await checkAuth();
             const id = document.getElementById('editCompId').value;
             const name = document.getElementById('compName').value.trim();
             const startTime = document.getElementById('compStart').value;
@@ -293,7 +299,7 @@
         }
         
         async function loadAllRegistrations() {
-            const token = checkAuth();
+            const token = await checkAuth();
             if (!token) return;
             try {
                 const res = await fetch(`${API}/all-registrations`, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -391,8 +397,10 @@
             a.href = url; a.download = `全部报名_${new Date().toLocaleDateString('zh-CN')}.csv`; a.click();
         }
         
-        const token = checkAuth();
-        if (token) { loadCompetitions(); loadAllRegistrations(); }
+        (async () => {
+            const token = await checkAuth();
+            if (token) { loadCompetitions(); loadAllRegistrations(); }
+        })();
     </script>
 </body>
 </html>
